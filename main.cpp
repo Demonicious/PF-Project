@@ -2,10 +2,11 @@
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
+#include <conio.h>
 #include <Windows.h>
-#include "helpers.cpp"
 
-#include "tictactoe_helpers.cpp"
+#include "includes/helpers.cpp"
+#include "includes/tictactoe.cpp"
 
 using namespace std;
 
@@ -16,6 +17,7 @@ void number_game();
 int main() {
 	int choice;
 	
+	srand(time(NULL));
 	cout << "Game Hub - PF Project" << endl;
 	cout << "------------------------------------" << endl;
 	cout << "1. Snake" << endl;
@@ -44,8 +46,151 @@ int main() {
 	}
 }
 
-void snake_game() {
+struct SnakePlayer {
+	int x;
+	int y;
+	int direction;
+	int length;
 	
+	int prev[100][100];
+};
+
+
+void snake_game() {
+	int high_score = read_score( "snake.txt" ), score = 0, flag = 0;
+	
+	bool gameOver = false;
+	
+	SnakePlayer snake;
+	snake.x = 5;
+	snake.y = 5;
+	snake.direction = 1;
+	snake.length = 0;
+	
+	int board[10][10] = {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 4, 1, 0 },
+		{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+	};
+	
+	
+	while( !gameOver ) {
+		system("cls");
+		
+		if(_kbhit()) {
+			int code = _getch();
+			switch(code) {
+				case 72:
+					snake.direction = 1;
+					break;
+				case 75:
+					snake.direction = 2;
+					break;
+				case 80:
+					snake.direction = 3;
+					break;
+				case 77:
+					snake.direction = 4;
+					break;
+			}
+		}
+		
+		switch( snake.direction ) {
+			case 1:
+				snake.x--;
+				break;
+			case 2:
+				snake.y--;
+				break;
+			case 3:
+				snake.x++;
+				break;
+			case 4:
+				snake.y++;
+				break;
+		}
+		
+		switch(board[snake.x][snake.y]) {
+			case 0:
+				flag = 1;
+				gameOver = true;
+				break;
+			case 2:
+				flag = 2;
+				gameOver = true;
+				break;
+			case 4:
+				score += 10;
+				snake.length++;
+				int fruit_x = rand() % 8 + 1;
+				int fruit_y = rand() % 8 + 1;
+				
+				if(board[snake.x][snake.y] != board[fruit_x][fruit_y]) {
+					board[fruit_x][fruit_y] = 4;
+				}
+				break;
+		}
+		
+		board[snake.x][snake.y] = 3;
+		
+		cout << "High Score: " << high_score << endl;
+		cout << "Score: " << score << endl << endl; 
+		for( int i = 0; i < 10; i++ ) {
+			for (int j = 0; j < 10; j++) {
+				int pos = board[i][j];
+				
+				switch( pos ) {
+					case 0:
+						cout << " # ";
+						break;
+					case 1:
+						cout << "   ";
+						break;
+					case 2:
+						cout << " T ";
+						break;
+					case 3:
+						cout << " H ";
+						break;
+					case 4:
+						cout << " F ";
+						break;
+				}
+			}
+			
+			cout << endl;
+		}
+		
+		board[snake.x][snake.y] = 1;
+		
+		Sleep( 1000 / 15 );
+	}
+	
+	if( gameOver ) {
+		switch( flag ) {
+			case 1:
+				cout << "You collided with the borders. Game Over!" << endl;
+				break;
+			case 2:
+				cout << "You collided with the snake's tail. Game Over!" << endl;
+				break;
+		}
+	}
+	
+	cout << "Your Final Score was: " << score << endl;
+	if( score > high_score) {
+		cout << "You have achieved a highscore!";
+		write_score( "snake.txt", score );
+	}
+	
+	main();
 }
 
 void tictactoe_game() {
@@ -70,6 +215,12 @@ void tictactoe_game() {
 	for(int i = 1; i < 5; i++) {
 		cout << "Player 1 Move: ";
 		cin >> move;
+		
+		if(move == 0) {
+			cout << "The Game Ended.";
+			flag = 3;
+			break;
+		}
 		
 		board[move - 1] = 'X';
 		display_board(board);
@@ -187,6 +338,8 @@ void tictactoe_game() {
 	if(flag == 0) {
 		cout << "The game ended in a draw.";
 	}
+	
+	main();
 }
 
 void number_game() {
@@ -202,7 +355,6 @@ void number_game() {
 	cout << "------------------------------------" << endl;
 	
 	int num, op, guess, i, series_last;
-	srand(time(NULL));
 	while( guess != 0 ) {
 		num = rand() % 10 + 1;
 		op  = (rand() % 10 + 1) >= 5 ? 1 : 2;
@@ -229,4 +381,6 @@ void number_game() {
 			break;
 		}
 	}
+	
+	main();
 }
